@@ -1,5 +1,5 @@
 ﻿namespace HtmlGamer.Core.Data.Enums;
-public enum Type
+internal enum Type
 {
     Guild,
     Member

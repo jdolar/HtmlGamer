@@ -1,6 +1,6 @@
 ﻿namespace HtmlGamer.Core.Data.Models.InPut;
-public class Entry
+internal class Entry
 {
-    public int Id { get; set; } = default;
-    public string Name { get; set; } = string.Empty;
+    internal int Id { get; set; } = default;
+    internal string Name { get; set; } = string.Empty;
 }

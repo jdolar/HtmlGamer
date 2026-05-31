@@ -33,15 +33,13 @@ public sealed class Configure
     {
         Encryption encrypt = new();
         Reader reader = new();
-        Writter writter = new();
+        Writer writter = new();
 
         if (encryptConstants == true)
         {
             Dictionary<string, string> encrypted = EncryptConstansts(encrypt, reader);
             writter.SaveAsDictionary(_directory, Constants.Files.Encrypted, encrypted);
         }
-
-        Dictionary<string, string> config = DecryptConstansts(encrypt, reader);
 
         return Host.CreateDefaultBuilder(args)
         .ConfigureLogging((context, logging) =>
@@ -60,24 +58,27 @@ public sealed class Configure
             if (string.IsNullOrWhiteSpace(settings.Folders.Data))
                 settings.Folders.Data = _directory;
 
-            if (string.IsNullOrWhiteSpace(settings.Folders.InPut))
-                settings.Folders.InPut = nameof(settings.Folders.InPut);
+            if (string.IsNullOrWhiteSpace(settings.Folders.ToParse))
+                settings.Folders.ToParse = Path.Combine(settings.Folders.Data, settings.Folders.ToParse);
 
-            if (string.IsNullOrWhiteSpace(settings.Folders.OutPut))
-                settings.Folders.OutPut = nameof(settings.Folders.OutPut);
+            if (string.IsNullOrWhiteSpace(settings.Folders.Parsed))
+                settings.Folders.Parsed = Path.Combine(settings.Folders.Data, settings.Folders.Parsed);
 
-            if (string.IsNullOrWhiteSpace(settings.Folders.ToEncrypt))
-                settings.Folders.ToEncrypt = nameof(settings.Folders.ToEncrypt);
+            if (string.IsNullOrWhiteSpace(settings.Folders.Analyzed))
+                settings.Folders.Analyzed = Path.Combine(settings.Folders.Data, settings.Folders.Analyzed);
 
             services.AddSingleton(settings);
+
+            Dictionary<string, string> config = DecryptConstansts(encrypt, reader);
             services.AddSingleton<IReadOnlyDictionary<string, string>>(config);
 
             services.AddSingleton<Encryption>();
             services.AddSingleton<Reader>();
-            services.AddSingleton<Writter>();
+            services.AddSingleton<Writer>();
             services.AddSingleton<Mapper>();
             services.AddSingleton<Parser>();
             services.AddSingleton<Scrapper>();
+            services.AddSingleton<Runner>();
         })
         .Build();
     }

@@ -1,5 +1,5 @@
 ﻿namespace HtmlGamer.Core.Data.Models.InPut;
-public sealed class Member : Entry
+internal sealed class Member : Entry
 {
-    public string Title { get; set; } = string.Empty;
+    internal string Title { get; set; } = string.Empty;
 }

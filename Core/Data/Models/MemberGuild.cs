@@ -1,6 +1,6 @@
 ﻿namespace HtmlGamer.Core.Data.Models;
-public sealed class MemberGuild
+internal sealed class MemberGuild
 {
-    public long MemberId { get; set; }
-    public long? GuildId { get; set; } = null;
+    internal long MemberId { get; set; }
+    internal long? GuildId { get; set; } = null;
 }

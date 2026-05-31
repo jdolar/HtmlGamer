@@ -1,6 +1,7 @@
 ﻿using AngleSharp;
 using HtmlGamer.Core.Data;
 using HtmlGamer.Core.Data.Models;
+using HtmlGamer.Core.Data.Models.InPut;
 using Microsoft.Extensions.Logging;
 using System.Diagnostics;
 namespace HtmlGamer.Core.Services;
@@ -10,6 +11,10 @@ public sealed class Parser
     private readonly string _guildsHtml;
     private readonly string _guildSelector;
     private readonly string _memberSelector;
+
+    private Dictionary<string, Member> _members = new();
+    private Dictionary<string, Guild> _guilds = new();
+    private Dictionary<string, MemberGuild> _content = new();
     public Parser(ILogger<Parser> logger, IReadOnlyDictionary<string, string> config)
     {
         _logger = logger;
@@ -20,7 +25,7 @@ public sealed class Parser
 
         Loggers.LogAs.Init(_logger);
     }
-    public async Task<(List<MemberGuildType>, long)> ParseHtml(string html)
+    internal async Task<(List<MemberGuildType>, long)> ParseHtml(string html)
     {
         if (html.Contains(_guildsHtml))
             return await ParseGuilds(html);
@@ -177,5 +182,75 @@ public sealed class Parser
         }
 
         return new string(buffer[..idx]).Trim();
+    }
+    internal void Merge(MemberGuildType entry)
+    {
+        var memberKey = entry.Member.Name;
+
+        if (!_members.TryGetValue(memberKey, out var member))
+        {
+            member = entry.Member;
+            _members[memberKey] = member;
+        }
+        else
+        {
+            if (member.Id == 0 && entry.Member.Id != 0)
+                member.Id = entry.Member.Id;
+
+            if (string.IsNullOrEmpty(member.Title) && !string.IsNullOrEmpty(entry.Member.Title))
+                member.Title = entry.Member.Title;
+        }
+
+        Guild? guild = null;
+        if (!string.IsNullOrEmpty(entry.Guild?.Name))
+        {
+            var guildKey = entry.Guild.Name ?? "";
+
+            if (!_guilds.TryGetValue(guildKey, out guild))
+            {
+                guild = entry.Guild;
+                _guilds[guildKey] = guild;
+            }
+            else
+            {
+                if (guild.Id == 0 && entry.Guild.Id != 0)
+                    guild.Id = entry.Guild.Id;
+
+                if (guild.MemberCount == 0 && entry.Guild.MemberCount != 0)
+                    guild.MemberCount = entry.Guild.MemberCount;
+            }
+        }
+
+        var contentKey = member.Id != 0
+            ? $"p:{member.Id}"
+            : $"n:{member.Name}";
+
+        if (!_content.TryGetValue(contentKey, out var content))
+        {
+            content = new MemberGuild
+            {
+                MemberId = member.Id,
+                GuildId = guild?.Id
+            };
+
+            _content[contentKey] = content;
+        }
+        else
+        {
+            if (content.MemberId == 0 && member.Id != 0)
+                content.MemberId = member.Id;
+
+            if (content.GuildId == 0 && guild?.Id != 0)
+                content.GuildId = guild?.Id;
+        }
+    }
+    internal Data.Models.OutPut.ParsedData GetParsedData()
+    {
+        return new Data.Models.OutPut.ParsedData
+        {
+            Members = _members,
+            Guilds = _guilds,
+            MebersGuilds = _content
+        };
     }
 }

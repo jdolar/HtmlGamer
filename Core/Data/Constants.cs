@@ -45,6 +45,9 @@ internal sealed class Constants
         internal const string MasterUrl = nameof(MasterUrl);
         internal const string SlaveUrl = nameof(SlaveUrl);
         internal const string GuildsHtml = nameof(GuildsHtml);
+        internal const string MasterUser = nameof(MasterUser);
+        internal const string MasterMail = nameof(MasterMail);
+        internal const string MasterPass = nameof(MasterPass);
     }
     internal sealed class Unsorted
     {
@@ -52,7 +55,7 @@ internal sealed class Constants
         internal const string TailingTab = " ";
         internal const int SpaceBetween = 10;
     }
-    public static string GetFileName(string? name = null, string? extension = null)
+    internal static string GetFileName(string? name = null, string? extension = null)
     {
         if (string.IsNullOrWhiteSpace(name))
             name = _userName;

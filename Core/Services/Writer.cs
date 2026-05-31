@@ -4,32 +4,32 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using System.Text.Json;
 namespace HtmlGamer.Core.Services;
-public sealed class Writter
+public sealed class Writer
 {
-    private readonly ILogger<Writter> _logger;
-    public Writter()
-    : this(NullLogger<Writter>.Instance)
+    private readonly ILogger<Writer> _logger;
+    internal Writer()
+    : this(NullLogger<Writer>.Instance)
     {
     }
-    public Writter(ILogger<Writter> logger)
+    public Writer(ILogger<Writer> logger)
     {
         _logger = logger;
         Loggers.LogAs.Init(_logger);
     }
-    public void SaveAsJson(string path, JsonFile content)
+    internal void SaveAsJson(string path, JsonFile content)
     {
         string fileName = Constants.GetFileName(extension: "json");
         string fileContent = JsonSerializer.Serialize<JsonFile>(content, Constants.Json.SerializerOptions);
         SaveFile(path, fileName, fileContent);
     }
-    public void SaveAsLog(string path, string content)
+    internal void SaveAsLog(string path, string content)
     {
         string fileName = Constants.GetFileName(extension: "log");
         SaveFile(path, fileName, content);
     }
     internal async Task SaveAsHtml(string path, string fileNamePrefix, string content)
     {
-        string name = $"{fileNamePrefix}_{Constants.GetFileName(extension:"html")}";
+       string name = $"{fileNamePrefix}_{Constants.GetFileName(extension:"html")}";
        await SaveFileAsync(path, name, content);
     }
     internal void CreateDirectory(string path)
@@ -66,7 +66,7 @@ public sealed class Writter
             Loggers.LogAs.Error(_logger, name, ex);
         }
     }
-    public async Task SaveFileAsync(string path, string name, string content)
+    internal async Task SaveFileAsync(string path, string name, string content)
     {
         CreateDirectory(path);
 

@@ -9,7 +9,7 @@ public sealed class Encryption
     internal readonly ILogger<Encryption> _logger;
     internal readonly byte[] _key;
     internal readonly byte[] _iv;
-    public Encryption()
+    internal Encryption()
         : this(NullLogger<Encryption>.Instance)
     {
     }

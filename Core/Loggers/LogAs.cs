@@ -6,7 +6,7 @@ internal partial class LogAs
     EventId = 1000,
     Level = LogLevel.Debug,
     Message = "Initialized"
-)]
+    )]
     internal static partial void Init(
     ILogger logger);
 
@@ -28,7 +28,7 @@ internal partial class LogAs
         ILogger logger,
         string message,
         Exception ex);
-    
+
     [LoggerMessage(
         EventId = 1003,
         Level = LogLevel.Warning,

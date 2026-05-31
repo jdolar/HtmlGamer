@@ -7,8 +7,8 @@ using System.Text.Json;
 namespace HtmlGamer.Core.Services;
 public sealed class Reader
 {
-    internal readonly ILogger<Reader> _logger;
-    public Reader()
+    private readonly ILogger<Reader> _logger;
+    internal Reader()
     : this(NullLogger<Reader>.Instance)
     {
     }
@@ -61,11 +61,11 @@ public sealed class Reader
 
         return list;
     }
-    public string GetHtml(string path)
+    internal string GetHtml(string path)
     {
         try
         {
-            Loggers.LogAs.Debug(_logger, "GetHtml: {path}");
+            Loggers.LogAs.Debug(_logger, $"GetHtml: {path}");
             return File.ReadAllText(path);
         }
         catch (Exception ex)
@@ -76,6 +76,7 @@ public sealed class Reader
     }
     internal string GetJson(string path, string fileName)
     {
+        Loggers.LogAs.Debug(_logger, $"GetJson: {fileName}, Path: {path}");
         fileName = Constants.GetFileName(fileName, "json");
         return GetFile(path, fileName);
     }
@@ -84,17 +85,17 @@ public sealed class Reader
         try
         {
             path = Path.Combine(path, fileName);
-            Loggers.LogAs.Debug(_logger, "GetFile: {fileName}");
+            Loggers.LogAs.Debug(_logger, $"GetFile: {fileName}");
             return File.ReadAllText(path);
         }
         catch (Exception ex)
         {
-            Loggers.LogAs.Error(_logger, "GetFile: {path}", ex);
+            Loggers.LogAs.Error(_logger, $"GetFile: {path}", ex);
             return string.Empty;
         }
     }
-    public string[] GetHtmlFilesList(string path) => Directory.Exists(path) ? Directory.GetFiles(path, "*.html") : new string[0];
-    public void Debug(string fileName, List<MemberGuildType> parsedData, long parsedIn)
+    internal string[] GetHtmlFilesList(string path) => Directory.Exists(path) ? Directory.GetFiles(path, "*.html") : new string[0];
+    internal void Debug(string fileName, List<MemberGuildType> parsedData, long parsedIn)
     {
         Loggers.LogAs.Debug(_logger, $" --- {fileName} - {parsedData.Count} - {parsedIn}ms --- ");
 
@@ -113,7 +114,7 @@ public sealed class Reader
             else if (data.Type == Data.Enums.Type.Guild)
                 id = data.Guild?.Id;
 
-            Loggers.LogAs.Debug(_logger, "{id} {data.Member.Name} {guild}");
+            Loggers.LogAs.Debug(_logger, $"{id} {data.Member.Name} {guild}");
         }
     }
 }
