@@ -13,6 +13,24 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <None Update="Config\accounts.json">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </None>
+	  <None Update="Config\appsettings.json">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </None>
+	  <None Update="Config\execute.json">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </None>
+	  <None Update="Config\scenarios.json">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </None>
+	  <None Update="Config\vpn\surfshark-de.conf">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </None>
+	  <None Update="Config\vpn\surfshark-nl.conf">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </None>
 	  <None Update="dat">
 	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 	  </None>

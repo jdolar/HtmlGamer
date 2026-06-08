@@ -1,4 +1,6 @@
-﻿using HtmlGamer.Core.Data.Models;
+﻿using HtmlGamer.Core.Data.Enums;
+using HtmlGamer.Core.Data.Models;
+using HtmlGamer.Core.Data.Models.InPut;
 using HtmlGamer.Core.Data.Models.OutPut;
 using Microsoft.Extensions.Logging;
 namespace HtmlGamer.Core.Services;
@@ -13,6 +15,7 @@ public sealed class Runner
     private readonly Reader _reader;
     private readonly ILogger<Runner> _logger;
     private readonly AppSettings _settings;
+    private readonly Dictionary<Step, Func<Task>> _steps;
     private ParsedData _data = new();
     public Runner(AppSettings settings, Scrapper scrapper, Parser parser, Mapper mapper, Writer writer, Reader reader, ILogger<Runner> logger)
     {
@@ -23,13 +26,33 @@ public sealed class Runner
         _reader = reader;
         _logger = logger;
         _settings = settings;
+        _steps = new()
+        {
+            { Step.Scrap, Scrapper },
+            { Step.Parse, Parser },
+            { Step.Analyze, Analayzer }
+        };
 
         Loggers.LogAs.Init(_logger);
+    }
+    public async Task Run(Scenario scenario)
+    {
+        foreach (var step in scenario.Steps)
+        {
+            if (_steps.TryGetValue(step, out var action))
+            {
+                Loggers.Scenario.Invoke(_logger, step.ToString());
+                
+                await action();
+                
+                Loggers.Scenario.Complete(_logger, step.ToString());
+            }
+        }
     }
     public async Task Scrapper()
     {
         if (_settings.Execute.Scrapper)
-            await _scrapper.RunAsync();
+            await _scrapper.ScrapBattleField();
     }
     public async Task Parser()
     {

@@ -1,5 +1,6 @@
 ﻿using HtmlGamer.Core.Data;
 using HtmlGamer.Core.Data.Models;
+using HtmlGamer.Core.Data.Models.InPut;
 using HtmlGamer.Core.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -29,6 +30,30 @@ public sealed class Configure
 
         return decrypted;
     }
+    private static Scenario[] GetScenarios(Encryption encryption, Reader reader)
+    {
+        string json = reader.GetJson(Path.Combine(_directory, Constants.Folders.Config), Constants.Files.Scenarios);
+        
+        var scenarios = JsonSerializer.Deserialize<Scenario[]>(json, Constants.Json.SerializerOptions) ?? new Scenario[0];
+        
+        return scenarios;
+    }
+    private static Account[] GetAccounts(Encryption encryption, Reader reader)
+    {
+        string json = reader.GetJson(Path.Combine(_directory, Constants.Folders.Config), Constants.Files.Accounts);
+
+        var accounts = JsonSerializer.Deserialize<Account[]>(json, Constants.Json.SerializerOptions) ?? new Account[0];
+
+        return accounts;
+    }
+    private static Data.Models.InPut.Execute[] GetExecutes(Encryption encryption, Reader reader)
+    {
+        string json = reader.GetJson(Path.Combine(_directory, Constants.Folders.Config), Constants.Files.Execute);
+
+        var executes = JsonSerializer.Deserialize<Data.Models.InPut.Execute[]>(json, Constants.Json.SerializerOptions) ?? new Data.Models.InPut.Execute[0];
+
+        return executes;
+    }
     public static IHost BuildHost(string[] args, bool? encryptConstants = null)
     {
         Encryption encrypt = new();
@@ -42,6 +67,15 @@ public sealed class Configure
         }
 
         return Host.CreateDefaultBuilder(args)
+        .ConfigureAppConfiguration((context, config) =>
+        {
+            config.Sources.Clear();
+            config.AddJsonFile($"{Constants.Folders.Config}/{Constants.Files.AppSettings}", optional: false, reloadOnChange: true)
+                  .AddJsonFile($"{Constants.Folders.Config}/{Constants.Files.AppSettings}.{context.HostingEnvironment.EnvironmentName}.json",
+                                     optional: true, reloadOnChange: true);
+
+            config.AddEnvironmentVariables();
+             })
         .ConfigureLogging((context, logging) =>
         {
             logging.AddConfiguration(context.Configuration.GetSection("Logging"));
@@ -68,6 +102,15 @@ public sealed class Configure
                 settings.Folders.Analyzed = Path.Combine(settings.Folders.Data, settings.Folders.Analyzed);
 
             services.AddSingleton(settings);
+
+            var scnarios = GetScenarios(encrypt, reader);
+            services.AddSingleton<IReadOnlyList<Scenario>>(scnarios);
+
+            var accounts = GetAccounts(encrypt, reader);
+            services.AddSingleton<IReadOnlyList<Account>>(accounts);
+
+            var executes = GetExecutes(encrypt, reader);
+            services.AddSingleton<IReadOnlyList<Data.Models.InPut.Execute>>(executes);
 
             Dictionary<string, string> config = DecryptConstansts(encrypt, reader);
             services.AddSingleton<IReadOnlyDictionary<string, string>>(config);

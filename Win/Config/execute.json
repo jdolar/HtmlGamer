@@ -1,0 +1,10 @@
+[
+  {
+    "UserName": "user1",
+    "ScenarioName": "FullRun"
+  },
+  {
+    "UserName": "user2",
+    "ScenarioName": "Banking"
+  }
+]

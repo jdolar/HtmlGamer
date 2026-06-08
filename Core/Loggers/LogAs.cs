@@ -30,6 +30,15 @@ internal partial class LogAs
         Exception ex);
 
     [LoggerMessage(
+        EventId = 1002,
+        Level = LogLevel.Error,
+        Message = "{message}"
+    )]
+    internal static partial void Error(
+        ILogger logger,
+        string message);
+
+    [LoggerMessage(
         EventId = 1003,
         Level = LogLevel.Warning,
         Message = "{message}"

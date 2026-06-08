@@ -25,11 +25,16 @@ internal sealed class Constants
     {
         internal const string InputData = "ToScrap";
         internal const string OutputData = "Scrapped";
+        internal const string Config = nameof(Config);
     }
     internal sealed class Files
     {
+        internal const string Accounts = "accounts";
+        internal const string Execute = "execute";
+        internal const string Scenarios = "scenarios";
         internal const string Encrypt = nameof(Encrypt);
-        internal const string Encrypted = "dat";
+        internal const string Encrypted = nameof(Encrypted);
+        internal const string AppSettings = "appsettings.json";
     }
     internal sealed class Html
     {

@@ -37,7 +37,7 @@ public sealed class Scrapper
 
         Loggers.LogAs.Init(_logger);
     }
-    internal async Task RunAsync(int? start = 1, int? end = 5)
+    internal async Task ScrapBattleField(int? start = 1, int? end = 5)
     {
         int pageIndex = start!.Value;
 
@@ -160,8 +160,7 @@ public sealed class Scrapper
         await _page.GetByRole(AriaRole.Button, new() { Name = name }).ClickAsync();
         
         await PageToLoad();
-    }
-   
+    } 
     internal async Task CheckPlayWrightInstallation()
     {
         try
