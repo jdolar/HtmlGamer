@@ -247,7 +247,7 @@ public sealed class Parser
     }
     internal ParsedData GetParsedData()
     {
-        return new Data.Models.OutPut.ParsedData
+        return new ParsedData
         {
             Members = _members,
             Guilds = _guilds,

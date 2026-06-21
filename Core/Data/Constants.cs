@@ -23,6 +23,7 @@ internal sealed class Constants
     }
     internal sealed class Folders
     {
+        internal const string Vpn = nameof(Vpn);
         internal const string InputData = "ToScrap";
         internal const string OutputData = "Scrapped";
         internal const string Config = nameof(Config);
@@ -34,7 +35,7 @@ internal sealed class Constants
         internal const string Scenarios = "scenarios";
         internal const string Encrypt = nameof(Encrypt);
         internal const string Encrypted = nameof(Encrypted);
-        internal const string AppSettings = "appsettings.json";
+        internal const string AppSettings = "appsettings";
     }
     internal sealed class Html
     {
@@ -50,15 +51,13 @@ internal sealed class Constants
         internal const string MasterUrl = nameof(MasterUrl);
         internal const string SlaveUrl = nameof(SlaveUrl);
         internal const string GuildsHtml = nameof(GuildsHtml);
-        internal const string MasterUser = nameof(MasterUser);
-        internal const string MasterMail = nameof(MasterMail);
-        internal const string MasterPass = nameof(MasterPass);
     }
     internal sealed class Unsorted
     {
         internal const string PreFixTab = "  ";
         internal const string TailingTab = " ";
         internal const int SpaceBetween = 10;
+        internal const string PasswordMask = "**********";
     }
     internal static string GetFileName(string? name = null, string? extension = null)
     {
@@ -68,6 +67,6 @@ internal sealed class Constants
         if (string.IsNullOrWhiteSpace(extension))
             return name;
 
-        return $"{name}.{extension}";
+        return name.Contains(extension) ? name : $"{name}.{extension}";
     }
 }

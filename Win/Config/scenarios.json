@@ -1,10 +1,10 @@
 [
   {
     "Name": "FullRun",
-    "Steps": [ "Scrap", "Parse", "Analyze" ]
+    "Steps": [ "Login", "ScrapBattlefield", "Parse", "Analyze" ]
   },
   {
-    "Name": "Banking",
-    "Steps": [ "Analyze", "Bank" ]
+    "Name": "Bank",
+    "Steps": [ "Login",  "Bank" ]
   }
 ]

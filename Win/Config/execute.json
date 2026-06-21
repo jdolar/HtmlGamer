@@ -1,10 +1,10 @@
 [
   {
     "UserName": "user1",
-    "ScenarioName": "FullRun"
+    "ScenarioName": "Bank"
   },
   {
     "UserName": "user2",
-    "ScenarioName": "Banking"
+    "ScenarioName": "Bank"
   }
 ]

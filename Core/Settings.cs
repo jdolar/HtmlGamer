@@ -1,14 +1,16 @@
 ﻿using HtmlGamer.Core.Data;
+using HtmlGamer.Core.Data.Interfaces;
 using HtmlGamer.Core.Data.Models;
 using HtmlGamer.Core.Data.Models.InPut;
 using HtmlGamer.Core.Services;
+using HtmlGamer.Core.Vpn.Clients;
+using HtmlGamer.Core.Vpn.Providers;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System.Text.Json;
 namespace HtmlGamer.Core;
-
 public sealed class Configure
 {
     private static string _directory = Environment.CurrentDirectory;
@@ -30,27 +32,27 @@ public sealed class Configure
 
         return decrypted;
     }
-    private static Scenario[] GetScenarios(Encryption encryption, Reader reader)
+    private static Scenario[] GetScenarios(Encryption encryption, Reader reader, string path, string fileName)
     {
-        string json = reader.GetJson(Path.Combine(_directory, Constants.Folders.Config), Constants.Files.Scenarios);
-        
+        string json = reader.GetJson(Path.Combine(_directory, path), fileName);
+
         var scenarios = JsonSerializer.Deserialize<Scenario[]>(json, Constants.Json.SerializerOptions) ?? new Scenario[0];
-        
+
         return scenarios;
     }
-    private static Account[] GetAccounts(Encryption encryption, Reader reader)
+    private static Account[] GetAccounts(Encryption encryption, Reader reader, string path, string fileName)
     {
-        string json = reader.GetJson(Path.Combine(_directory, Constants.Folders.Config), Constants.Files.Accounts);
+        string json = reader.GetJson(Path.Combine(_directory, path), fileName);
 
         var accounts = JsonSerializer.Deserialize<Account[]>(json, Constants.Json.SerializerOptions) ?? new Account[0];
 
         return accounts;
     }
-    private static Data.Models.InPut.Execute[] GetExecutes(Encryption encryption, Reader reader)
+    private static Execute[] GetExecutes(Encryption encryption, Reader reader, string path, string fileName)
     {
-        string json = reader.GetJson(Path.Combine(_directory, Constants.Folders.Config), Constants.Files.Execute);
+        string json = reader.GetJson(Path.Combine(_directory, path), fileName);
 
-        var executes = JsonSerializer.Deserialize<Data.Models.InPut.Execute[]>(json, Constants.Json.SerializerOptions) ?? new Data.Models.InPut.Execute[0];
+        var executes = JsonSerializer.Deserialize<Execute[]>(json, Constants.Json.SerializerOptions) ?? new Data.Models.InPut.Execute[0];
 
         return executes;
     }
@@ -70,12 +72,12 @@ public sealed class Configure
         .ConfigureAppConfiguration((context, config) =>
         {
             config.Sources.Clear();
-            config.AddJsonFile($"{Constants.Folders.Config}/{Constants.Files.AppSettings}", optional: false, reloadOnChange: true)
+            config.AddJsonFile($"{Constants.Folders.Config}/{Constants.Files.AppSettings}.json", optional: false, reloadOnChange: true)
                   .AddJsonFile($"{Constants.Folders.Config}/{Constants.Files.AppSettings}.{context.HostingEnvironment.EnvironmentName}.json",
                                      optional: true, reloadOnChange: true);
 
             config.AddEnvironmentVariables();
-             })
+        })
         .ConfigureLogging((context, logging) =>
         {
             logging.AddConfiguration(context.Configuration.GetSection("Logging"));
@@ -103,17 +105,20 @@ public sealed class Configure
 
             services.AddSingleton(settings);
 
-            var scnarios = GetScenarios(encrypt, reader);
+            var scnarios = GetScenarios(encrypt, reader, settings.Folders.Config, settings.Config.Scenarios);
             services.AddSingleton<IReadOnlyList<Scenario>>(scnarios);
 
-            var accounts = GetAccounts(encrypt, reader);
+            var accounts = GetAccounts(encrypt, reader, settings.Folders.Config, settings.Config.Accounts);
             services.AddSingleton<IReadOnlyList<Account>>(accounts);
 
-            var executes = GetExecutes(encrypt, reader);
-            services.AddSingleton<IReadOnlyList<Data.Models.InPut.Execute>>(executes);
+            var executes = GetExecutes(encrypt, reader, settings.Folders.Config, settings.Config.Execute);
+            services.AddSingleton<IReadOnlyList<Execute>>(executes);
 
-            Dictionary<string, string> config = DecryptConstansts(encrypt, reader);
-            services.AddSingleton<IReadOnlyDictionary<string, string>>(config);
+            Dictionary<string, string> constants = DecryptConstansts(encrypt, reader);
+            services.AddSingleton<IReadOnlyDictionary<string, string>>(constants);
+
+            services.AddSingleton<IVpnClient, WireGuard>();
+            services.AddSingleton<IVpnProvider, SurfShark>();
 
             services.AddSingleton<Encryption>();
             services.AddSingleton<Reader>();
@@ -122,7 +127,7 @@ public sealed class Configure
             services.AddSingleton<Parser>();
             services.AddSingleton<Scrapper>();
             services.AddSingleton<Runner>();
-        })
+    })
         .Build();
     }
 }
