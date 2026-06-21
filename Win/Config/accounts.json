@@ -1,0 +1,13 @@
+﻿[
+  {
+    "username": "user1",
+    "password": "pass1",
+    "email": "pass1@email.com"
+  },
+  {
+    "username": "user2",
+    "password": "pass2",
+    "email": "pass2@email.com",
+    "vpn": "si-fake"
+  }
+]

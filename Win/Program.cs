@@ -1,13 +1,11 @@
 ﻿using HtmlGamer.Core;
-using HtmlGamer.Core.Services;
-using Microsoft.Extensions.DependencyInjection;
-
+using HtmlGamer.Core.Data;
+using Microsoft.Extensions.Hosting;
 bool encryptConstants = true;
+IHost host = await Configure.BuildHost(args, encryptConstants)
+                            .Validate();
 
-var host = Configure.BuildHost(args, encryptConstants);
-
-var runner = host.Services.GetRequiredService<Runner>();
-await runner.Run();
+var runner = host.GetRunner();
+await runner.RunScenarios();
 
 runner.Close();
-;

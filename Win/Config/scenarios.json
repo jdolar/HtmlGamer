@@ -1,0 +1,10 @@
+[
+  {
+    "Name": "FullRun",
+    "Steps": [ "Login", "ScrapBattlefield", "Parse", "Analyze" ]
+  },
+  {
+    "Name": "Bank",
+    "Steps": [ "Login",  "Bank" ]
+  }
+]

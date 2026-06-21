@@ -35,9 +35,29 @@ internal partial class Scrapper
        Level = LogLevel.Debug,
        Message = "Processing page Index: {pageIndex} Url: {url}"
     )]
+    internal static partial void GoToPage(
+        ILogger logger,
+        string url,
+        string pageIndex);
+
+    [LoggerMessage(
+       EventId = 1003,
+       Level = LogLevel.Debug,
+       Message = "Processing page Index: {pageIndex} Url: {url}"
+    )]
     internal static partial void ProcessPage(
        ILogger logger,
        int pageIndex,
+       string url);
+
+    [LoggerMessage(
+       EventId = 1004,
+       Level = LogLevel.Debug,
+       Message = "Processing page Index: {pageIndex} Url: {url}"
+    )]
+    internal static partial void ProcessPage(
+       ILogger logger,
+       string pageIndex,
        string url);
 
     [LoggerMessage(

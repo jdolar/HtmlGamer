@@ -2,6 +2,7 @@
 using HtmlGamer.Core.Data;
 using HtmlGamer.Core.Data.Models;
 using HtmlGamer.Core.Data.Models.InPut;
+using HtmlGamer.Core.Data.Models.OutPut;
 using Microsoft.Extensions.Logging;
 using System.Diagnostics;
 namespace HtmlGamer.Core.Services;
@@ -244,9 +245,9 @@ public sealed class Parser
                 content.GuildId = guild?.Id;
         }
     }
-    internal Data.Models.OutPut.ParsedData GetParsedData()
+    internal ParsedData GetParsedData()
     {
-        return new Data.Models.OutPut.ParsedData
+        return new ParsedData
         {
             Members = _members,
             Guilds = _guilds,

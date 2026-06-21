@@ -18,6 +18,16 @@ internal partial class LogAs
     internal static partial void Debug(
         ILogger logger,
         string message);
+    
+    [LoggerMessage(
+      EventId = 1001,
+      Level = LogLevel.Debug,
+      Message = "{message} {details}"
+    )]
+    internal static partial void Debug(
+      ILogger logger,
+      string message,
+      string details);
 
     [LoggerMessage(
         EventId = 1002,
@@ -28,6 +38,25 @@ internal partial class LogAs
         ILogger logger,
         string message,
         Exception ex);
+
+    [LoggerMessage(
+        EventId = 1002,
+        Level = LogLevel.Error,
+        Message = "{message}"
+    )]
+    internal static partial void Error(
+        ILogger logger,
+        string message);
+
+    [LoggerMessage(
+        EventId = 1002,
+          Level = LogLevel.Error,
+          Message = "{message}: {details}"
+    )]
+    internal static partial void Error(
+        ILogger logger,
+        string message,
+        string details);
 
     [LoggerMessage(
         EventId = 1003,
