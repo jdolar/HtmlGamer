@@ -361,3 +361,11 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+/Win/Config/vpn/ba-sjj.conf
+/Win/Config/vpn/br-sao.conf
+/Win/Config/vpn/si-lju.conf
+/Win/Config/vpn/wireguard-log-2026-06-15T235021.txt
+/Win/Config/accounts.Development.json
+/Win/Config/appsettings.Development.json
+/Win/Config/execute.Development.json
+/Win/Config/scenarios.Development.json
