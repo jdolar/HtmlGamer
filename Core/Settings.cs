@@ -125,7 +125,7 @@ public sealed class Configure
             services.AddSingleton<Writer>();
             services.AddSingleton<Mapper>();
             services.AddSingleton<Parser>();
-            services.AddSingleton<Scrapper>();
+            services.AddSingleton<Playwright>();
             services.AddSingleton<Runner>();
     })
         .Build();

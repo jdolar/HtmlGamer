@@ -3,6 +3,5 @@ public enum AppSettingsKeys
 {
     Root,
     Folders,
-    Generation,
     Execute
 }

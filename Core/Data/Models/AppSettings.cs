@@ -24,12 +24,5 @@ public sealed class AppSettings
 {
     public bool AutoClose { get; set; } = true;
     public Folders Folders { get; set; } = new();
-    public Generation Generation { get; set; } = new();
     public Config Config { get; set; } = new();
-}
-public sealed class Generation
-{
-    public bool IgnoreGuilds { get; set; } = true;
-    public int PageStart { get; set; } = 1;
-    public int PageEnd { get; set; } = 5;
 }

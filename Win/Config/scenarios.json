@@ -1,10 +1,32 @@
 [
   {
     "Name": "FullRun",
-    "Steps": [ "Login", "ScrapBattlefield", "Parse", "Analyze" ]
+    "Steps": [ "Login", "ScrapBattlefield", "Parse", "Analyze" ],
+    "Properties": {
+      "ScrapBattlefield": [
+        {
+          "Name": "StartIndex",
+          "Value": "11"
+        },
+        {
+          "Name": "EndIndex",
+          "Value": "12"
+        }
+      ],
+      "Analyze": [
+        {
+          "Name": "IgnoreGuilds",
+          "Value": "true"
+        }
+      ]
+    }
   },
   {
     "Name": "Bank",
-    "Steps": [ "Login",  "Bank" ]
+    "Steps": [ "Login", "Bank" ]
+  },
+  {
+    "Name": "Login",
+    "Steps": [ "Login" ]
   }
 ]

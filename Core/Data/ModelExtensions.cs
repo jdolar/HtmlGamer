@@ -116,17 +116,6 @@ public static class ModelExtensions
             || type == typeof(TimeSpan);
     }
     private static string Indent(int count) => new(' ', count);
-    public static string ToTextString(this Scenario scenario)
-    {
-        StringBuilder builder = new();
-        builder.AppendLine($"Name: {scenario.Name}");
-        builder.AppendLine("Steps:");
-
-        foreach (var step in scenario.Steps)
-            builder.AppendLine($"  - {step}");
-
-        return builder.ToString();
-    }
     public static string ToTextString(this Account account)
     {
         StringBuilder builder = new();
@@ -137,7 +126,7 @@ public static class ModelExtensions
 
         return builder.ToString();
     }
-    public static string ToTextString(this Models.InPut.Execute execute)
+    public static string ToTextString(this Execute execute)
     {
         StringBuilder builder = new();
         builder.AppendLine($"Player [UserName]: {execute.UserName}");
@@ -148,6 +137,36 @@ public static class ModelExtensions
     public static string ToTextString(this KeyValuePair<string, string> constant)
     {
         return $" * {constant.Key}: {constant.Value}";
+    }
+    public static string ToTextString(this Models.InPut.Scenario input)
+    {
+        StringBuilder builder = new();
+        builder.AppendLine($"Name: {input.Name}");
+        builder.AppendLine("Steps:");
+
+        foreach (var step in input.Steps)
+            builder.AppendLine($"  - {step}");
+
+        if (input.Properties is null || input.Properties.Count == 0)
+            return builder.ToString().TrimEnd();
+
+        foreach (var (category, properties) in input.Properties)
+        {
+            builder.AppendLine($"[{category}]");
+
+            if (properties.Count == 0)
+            {
+                builder.AppendLine("  <empty>");
+                continue;
+            }
+
+            foreach (var property in properties)
+                builder.AppendLine($"  {property.Name}: {property.Value}");
+
+            builder.AppendLine();
+        }
+
+        return builder.ToString().TrimEnd();
     }
     internal static string ToTextString(this Dictionary<(Enums.AppSettingsKeys, string), string> fields,
         string? preSpace = Constants.Unsorted.PreFixTab,
@@ -180,10 +199,6 @@ public static class ModelExtensions
         results.Add((Enums.AppSettingsKeys.Folders, nameof(settings.Folders.Parsed)), settings.Folders.Parsed);
         results.Add((Enums.AppSettingsKeys.Folders, nameof(settings.Folders.ToParse)), settings.Folders.ToParse);
 
-        results.Add((Enums.AppSettingsKeys.Generation, nameof(settings.Generation.IgnoreGuilds)), settings.Generation.IgnoreGuilds.ToString());
-        results.Add((Enums.AppSettingsKeys.Generation, nameof(settings.Generation.PageStart)), settings.Generation.PageStart.ToString());
-        results.Add((Enums.AppSettingsKeys.Generation, nameof(settings.Generation.PageEnd)), settings.Generation.PageEnd.ToString());
-
         return results;
     }  
     public static async Task<IHost> Validate(this IHost host)
@@ -209,7 +224,7 @@ public static class ModelExtensions
         else
             Loggers.LogAs.Error(logger, "AppSettings is null");
 
-        var scenarios = host.Services.GetRequiredService<IReadOnlyList<Scenario>>();
+        var scenarios = host.Services.GetRequiredService<IReadOnlyList<Data.Models.InPut.Scenario>>();
         if (scenarios != null)
             Loggers.LogAs.Debug(logger, "Scenarios:\n" + string.Join("\n", scenarios.Select(scenario => scenario.ToTextString())));
         else
@@ -254,7 +269,7 @@ public static class ModelExtensions
 
         try
         {
-            using var playwright = await Playwright.CreateAsync();
+            using var playwright = await Microsoft.Playwright.Playwright.CreateAsync();
             await playwright.Chromium.LaunchAsync();
 
             Loggers.LogAs.Debug(logger, "Playwright is working correctly.");
@@ -302,4 +317,5 @@ public static class ModelExtensions
             throw;
         }
     }
+   
 }

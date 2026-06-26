@@ -6,23 +6,22 @@ using Microsoft.Playwright;
 using System.Xml.Linq;
 namespace HtmlGamer.Core.Services;
 
-public sealed class Scrapper
+public sealed class Playwright
 {
     private readonly Random _random = new();
 
-    private readonly ILogger<Scrapper> _logger;
+    private readonly ILogger<Playwright> _logger;
     private readonly Writer _writter;
+    private readonly IReadOnlyList<Scenario> _scenarios;
 
     private readonly string _path;
     private readonly string _gameUrl;
     private readonly string _masterPageSelector;
-
-    private readonly AppSettings _settings;
-    public Scrapper(ILogger<Scrapper> logger, Writer writter, AppSettings settings, IReadOnlyDictionary<string, string> config)
+    public Playwright(ILogger<Playwright> logger, Writer writter, AppSettings settings, IReadOnlyList<Scenario> scenarios, IReadOnlyDictionary<string, string> config)
     {
         _logger = logger;
         _writter = writter;
-        _settings = settings;
+        _scenarios = scenarios;
 
         _path = Path.Combine(settings.Folders.Data, settings.Folders.ToParse);
         _gameUrl = config[Constants.EncryptKeys.MasterUrl];
@@ -34,7 +33,7 @@ public sealed class Scrapper
     {
         try
         {
-            using var playwright = await Playwright.CreateAsync();
+            using var playwright = await Microsoft.Playwright.Playwright.CreateAsync();
             await using var browser = await playwright.Chromium.LaunchAsync(Constants.Browsers.LaunchOptions);
             await using var context = await browser.NewContextAsync();
 
@@ -79,15 +78,28 @@ public sealed class Scrapper
     }
     public async Task ScrapBattlefield(IPage page, Account account)
     {
-        int pageIndex = _settings.Generation.PageStart;
-        int end = _settings.Generation.PageEnd;
+        Scenario? scenario = _scenarios.FirstOrDefault(s => s.Name == "FullRun");
+
+        int pageStart = 1;
+        int pageEnd = 1;
+
+        if (scenario?.Properties?.TryGetValue(nameof(ScrapBattlefield), out List<Property>? properties) == true)
+        {
+            if (properties.FirstOrDefault(p => p.Name == Constants.ScenarioKeys.StartIndex)?.Value is string pageStartStr && int.TryParse(pageStartStr, out int start))
+                pageStart = start;
+
+            if (properties.FirstOrDefault(p => p.Name == Constants.ScenarioKeys.EndIndex)?.Value is string pageEndStr && int.TryParse(pageEndStr, out int end))
+                pageEnd = end;
+        }
+
+        int pageIndex = pageStart;
         string pageIndexStr = pageIndex.ToString();
 
         //Navigate to starting point
         await ClickButtonOnImage(page, "Attack");
         await GoToPageIndex(page, pageIndexStr);
 
-        while (true && pageIndex <= end)
+        while (true && pageIndex <= pageEnd)
         {
             Loggers.Services.Scrapper.ProcessPage(_logger, pageIndexStr, page.Url);
 
@@ -121,7 +133,6 @@ public sealed class Scrapper
         await page.Locator("input[name=\"page\"]").ClickAsync();
         await page.Locator("input[name=\"page\"]").FillAsync(pageId);
         await page.GetByRole(AriaRole.Cell, new() { Name = $"{pageId} Go", Exact = true }).Locator("input[type=\"submit\"]").ClickAsync();
-        // await PageToLoad();
 
         Loggers.Services.Scrapper.GoToPage(_logger, page.Url, pageId);
     }
