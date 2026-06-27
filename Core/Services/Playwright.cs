@@ -3,33 +3,27 @@ using HtmlGamer.Core.Data.Models;
 using HtmlGamer.Core.Data.Models.InPut;
 using Microsoft.Extensions.Logging;
 using Microsoft.Playwright;
-using System.Xml.Linq;
 namespace HtmlGamer.Core.Services;
-
 public sealed class Playwright
 {
     private readonly Random _random = new();
 
     private readonly ILogger<Playwright> _logger;
     private readonly Writer _writter;
-    private readonly IReadOnlyList<Scenario> _scenarios;
 
     private readonly string _path;
     private readonly string _gameUrl;
-    private readonly string _masterPageSelector;
-    public Playwright(ILogger<Playwright> logger, Writer writter, AppSettings settings, IReadOnlyList<Scenario> scenarios, IReadOnlyDictionary<string, string> config)
+    public Playwright(ILogger<Playwright> logger, Writer writter, AppSettings settings, IReadOnlyDictionary<string, string> config)
     {
         _logger = logger;
         _writter = writter;
-        _scenarios = scenarios;
 
         _path = Path.Combine(settings.Folders.Data, settings.Folders.ToParse);
         _gameUrl = config[Constants.EncryptKeys.MasterUrl];
-        _masterPageSelector = config[Constants.EncryptKeys.MasterPageSelector];
 
         Loggers.LogAs.Init(_logger);
     }
-    internal async Task Execute(Func<IPage, Task> scenario)        
+    internal async Task Execute(Func<IPage, Task> scenario)
     {
         try
         {
@@ -37,7 +31,7 @@ public sealed class Playwright
             await using var browser = await playwright.Chromium.LaunchAsync(Constants.Browsers.LaunchOptions);
             await using var context = await browser.NewContextAsync();
 
-            Loggers.Services.Scrapper.OpenBrowser(_logger, browser.BrowserType.Name);
+            Loggers.Services.Playwright.OpenBrowser(_logger, browser.BrowserType.Name);
             var page = await context.NewPageAsync();
             await scenario(page);
         }
@@ -46,9 +40,9 @@ public sealed class Playwright
             Loggers.LogAs.Error(_logger, "An error occurred while executing the action.", ex);
         }
     }
-    
+
     #region Scenario Steps
-    public async Task Login(IPage page, Account account)
+    public async Task Login(IPage page, Account account, Scenario scenario)
     {
         if (page == null)
             return;
@@ -68,18 +62,20 @@ public sealed class Playwright
 
         await ClickButton(page, "Login");
     }
-    public async Task Bank(IPage page, Account account)
+    public async Task Bank(IPage page, Account account, Scenario scenario)
     {
         await GoToPageUrl(page, new Uri(new Uri(page.Url), "bank.php"!).ToString());
-        await page.Locator("html").ClickAsync();
-        await page.GetByRole(AriaRole.Button, new() { Name = "Deposit" }).ClickAsync();
+        
+        string naqOnHand = await page
+                    .GetByRole(AriaRole.Textbox, new() { Name = "amount:" })
+                    .InputValueAsync();
+        Loggers.Services.Playwright.NaqOnHand(_logger, account.UserName, naqOnHand);
+        
         await page.Locator("html").ClickAsync();
         await page.GetByRole(AriaRole.Button, new() { Name = "Deposit" }).ClickAsync();
     }
-    public async Task ScrapBattlefield(IPage page, Account account)
+    public async Task ScrapBattlefield(IPage page, Account account, Scenario scenario)
     {
-        Scenario? scenario = _scenarios.FirstOrDefault(s => s.Name == "FullRun");
-
         int pageStart = 1;
         int pageEnd = 1;
 
@@ -101,12 +97,10 @@ public sealed class Playwright
 
         while (true && pageIndex <= pageEnd)
         {
-            Loggers.Services.Scrapper.ProcessPage(_logger, pageIndexStr, page.Url);
+            Loggers.Services.Playwright.ProcessPage(_logger, pageIndexStr, page.Url);
 
             Uri uri = new(page.Url);
-            string pageName = Path.GetFileNameWithoutExtension(uri.AbsolutePath);
-
-            await RandomDelay(500, 1000);
+            string pageName = $"{account.UserName}_{Path.GetFileNameWithoutExtension(uri.AbsolutePath)}";       
             await SaveCurrentPageHtml(page, _path, pageName, pageIndexStr);
 
             bool moved = await MoveToNextPage(page);
@@ -118,7 +112,7 @@ public sealed class Playwright
 
             pageIndex++;
 
-            await RandomDelay(3000, 7000);
+            await RandomDelay(500, 1000);
         }
 
         Loggers.LogAs.Debug(_logger, "Done.");
@@ -134,14 +128,14 @@ public sealed class Playwright
         await page.Locator("input[name=\"page\"]").FillAsync(pageId);
         await page.GetByRole(AriaRole.Cell, new() { Name = $"{pageId} Go", Exact = true }).Locator("input[type=\"submit\"]").ClickAsync();
 
-        Loggers.Services.Scrapper.GoToPage(_logger, page.Url, pageId);
+        Loggers.Services.Playwright.GoToPage(_logger, page.Url, pageId);
     }
     private async Task GoToPageUrl(IPage page, string url)
     {
         if (page == null)
             return;
 
-        Loggers.Services.Scrapper.GoToPage(_logger, url);
+        Loggers.Services.Playwright.GoToPage(_logger, url);
 
         await page.GotoAsync(url);
         await PageLoad(page);
@@ -159,10 +153,10 @@ public sealed class Playwright
         if (page == null)
             return;
 
-        if(name != "Password")
-            Loggers.Services.Scrapper.FillField(_logger, name, value);
+        if (name != "Password")
+            Loggers.Services.Playwright.FillField(_logger, name, value);
         else
-            Loggers.Services.Scrapper.FillField(_logger, name, Constants.Unsorted.PasswordMask);
+            Loggers.Services.Playwright.FillField(_logger, name, Constants.Unsorted.PasswordMask);
 
         await page.GetByRole(AriaRole.Textbox, new() { Name = name }).ClickAsync();
         await page.GetByRole(AriaRole.Textbox, new() { Name = name }).FillAsync(value);
@@ -172,7 +166,7 @@ public sealed class Playwright
         if (page == null)
             return;
 
-        Loggers.Services.Scrapper.ClickButton(_logger, name);
+        Loggers.Services.Playwright.ClickButton(_logger, name);
         name = name.ToLower();
         string? href = await page
         .Locator($"area[alt='{name}']")
@@ -185,7 +179,7 @@ public sealed class Playwright
         if (page == null)
             return;
 
-        Loggers.Services.Scrapper.ClickButton(_logger, name);
+        Loggers.Services.Playwright.ClickButton(_logger, name);
         await page.GetByRole(AriaRole.Button, new() { Name = name }).ClickAsync();
 
         await PageLoad(page);
@@ -204,28 +198,19 @@ public sealed class Playwright
     {
         if (page == null)
             return false;
-        try
-        {
-            await page.Locator("a")
-                .Filter(new() { HasText = "Next" })
-                .Last
-                .ClickAsync();
 
-            await PageLoad(page);
-            Loggers.LogAs.Debug(_logger, "Moved to next page...");
-        }
-        catch (Exception ex)
-        {
-            Loggers.LogAs.Error(_logger, "Failed to move to next page.", ex);
+        ILocator? nextButton = page.Locator("a").Filter(new() { HasText = "Next" }).Last;
+
+        if (await nextButton.CountAsync() == 0)
             return false;
-        }
 
+        await nextButton.ClickAsync();
         return true;
     }
     public async Task RandomDelay(int minMs = 1200, int maxMs = 4500)
     {
         int delay = _random.Next(minMs, maxMs);
-        Loggers.Services.Scrapper.RandomDelay(_logger, delay);
+        Loggers.Services.Playwright.RandomDelay(_logger, delay);
         await Task.Delay(delay);
     }
 }

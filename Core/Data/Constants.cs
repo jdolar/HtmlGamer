@@ -47,7 +47,6 @@ internal sealed class Constants
     {
         internal const string MemberSelector = nameof(MemberSelector);
         internal const string GuildSelector = nameof(GuildSelector);
-        internal const string MasterPageSelector = nameof(MasterPageSelector);
         internal const string MasterUrl = nameof(MasterUrl);
         internal const string SlaveUrl = nameof(SlaveUrl);
         internal const string GuildsHtml = nameof(GuildsHtml);

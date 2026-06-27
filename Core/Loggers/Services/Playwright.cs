@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 namespace HtmlGamer.Core.Loggers.Services;
-internal partial class Scrapper
+internal partial class Playwright
 {
     [LoggerMessage(
         EventId = 1000,
@@ -97,4 +97,14 @@ internal partial class Scrapper
     ILogger logger,
     string name,
     string path);
+
+    [LoggerMessage(
+   EventId = 1007,
+   Level = LogLevel.Debug,
+   Message = "[{user}] Naquadah: {naq}"
+)]
+    internal static partial void NaqOnHand(
+   ILogger logger,
+   string user,
+   string naq);
 }

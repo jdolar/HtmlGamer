@@ -18,7 +18,7 @@ public sealed class Runner
     private readonly IVpnClient _vpn;
     private readonly ILogger<Runner> _logger;
     private readonly AppSettings _settings;
-    private readonly Dictionary<Step, Func<IPage, Account, Task>> _steps;
+    private readonly Dictionary<Step, Func<IPage, Account, Scenario, Task>> _steps;
     private readonly IReadOnlyList<Account> _accounts;
     private readonly IReadOnlyList<Scenario> _scenarios;
     private readonly IReadOnlyList<Execute> _executes;
@@ -41,8 +41,8 @@ public sealed class Runner
             { Step.Login, Login },
             { Step.Bank, Bank },
             { Step.ScrapBattleField, ScrapBattlefield },        
-            { Step.Parse, (_, account) => Parser(account) },
-            { Step.Analyze, (_, account) => Analyze(account) }
+            { Step.Parse, (_, account, scenario) => Parser(account, scenario) },
+            { Step.Analyze, (_, account, scenario) => Analyze(account, scenario) }
         };
         Loggers.LogAs.Init(_logger);
     }
@@ -84,7 +84,7 @@ public sealed class Runner
                     string stepName = step.ToString();
                     Loggers.Scenario.Invoke(_logger, stepName);
 
-                    await action(page, account);
+                    await action(page, account, scenario);
 
                     Loggers.Scenario.Complete(_logger, stepName);
                 }
@@ -100,7 +100,7 @@ public sealed class Runner
         await _playwright.RandomDelay();
         Loggers.LogAs.Debug(_logger, "Completed scenario: ", scenarioName);
     }
-    public async Task Parser(Account _)
+    public async Task Parser(Account _, Scenario scenario)
     {
         string[] htmlFiles = _reader.GetHtmlFilesList(Path.Combine(_settings.Folders.Data, _settings.Folders.ToParse));
 
@@ -119,14 +119,12 @@ public sealed class Runner
 
         _data = _parser.GetParsedData();
     }
-    public async Task Analyze(Account _)
+    public async Task Analyze(Account _, Scenario scenario)
     {
-        Scenario? scenario = _scenarios.FirstOrDefault(s => s.Name == "FullRun");
-
         bool ignoreGuilds = false;
         if (scenario?.Properties?.TryGetValue(nameof(Analyze), out List<Property>? properties) == true)
         {
-            if (properties.FirstOrDefault(p => p.Name == Constants.ScenarioKeys.IgnoreGuilds)?.Value is string ignoreGuildsStr && bool.TryParse(ignoreGuildsStr, out bool ignore))
+            if (properties?.FirstOrDefault(p => p.Name == Constants.ScenarioKeys.IgnoreGuilds)?.Value is string ignoreGuildsStr && bool.TryParse(ignoreGuildsStr, out bool ignore))
                 ignoreGuilds = ignore;
         }
 
@@ -139,9 +137,9 @@ public sealed class Runner
             JsonFile jsonOutput = _mapper.MapToJson(_data);
             _writer.SaveAsJson(path, jsonOutput);
     }
-    public async Task Bank(IPage page, Account account) => await  _playwright.Bank(page, account);
-    public async Task Login(IPage page, Account account) => await _playwright.Login(page, account);
-    public async Task ScrapBattlefield(IPage page, Account account) => await _playwright.ScrapBattlefield(page,account);
+    public async Task Bank(IPage page, Account account, Scenario scenario) => await  _playwright.Bank(page, account, scenario);
+    public async Task Login(IPage page, Account account, Scenario scenario) => await _playwright.Login(page, account, scenario);
+    public async Task ScrapBattlefield(IPage page, Account account, Scenario scenario) => await _playwright.ScrapBattlefield(page,account,scenario);
     public void Close()
     {
         if (!_settings.AutoClose)
