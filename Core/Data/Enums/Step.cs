@@ -1,9 +1,9 @@
 ﻿namespace HtmlGamer.Core.Data.Enums;
 public enum Step
 {
-    ScrapBattleField,
-    ScrapGuilds,
-    ScrapEnemies,
+    BattleField,
+    Guilds,
+    Enemies,
     Parse,
     Analyze,
     Bank,

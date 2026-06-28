@@ -23,7 +23,7 @@ public sealed class Playwright
 
         Loggers.LogAs.Init(_logger);
     }
-    internal async Task Execute(Func<IPage, Task> scenario)
+    internal async Task ExecuteWithPlaywright(Func<IPage, Task> scenario)
     {
         try
         {
@@ -40,6 +40,17 @@ public sealed class Playwright
             Loggers.LogAs.Error(_logger, "An error occurred while executing the action.", ex);
         }
     }
+    internal async Task Execute(Func<Task> scenario)
+    {
+        try
+        {
+            await scenario();
+        }
+        catch (Exception ex)
+        {
+            Loggers.LogAs.Error(_logger, "An error occurred while executing the action.", ex);
+        }
+    }
 
     #region Scenario Steps
     public async Task Login(IPage page, Account account, Scenario scenario)
@@ -47,7 +58,7 @@ public sealed class Playwright
         if (page == null)
             return;
 
-        Loggers.LogAs.Debug(_logger, "Logging in...");
+        Loggers.Services.Playwright.Login(_logger, account.UserName);
 
         await GoToPageUrl(page, _gameUrl);
         await ClickButton(page, "Log in!");
@@ -74,51 +85,70 @@ public sealed class Playwright
         await page.Locator("html").ClickAsync();
         await page.GetByRole(AriaRole.Button, new() { Name = "Deposit" }).ClickAsync();
     }
-    public async Task ScrapBattlefield(IPage page, Account account, Scenario scenario)
+    public async Task Battlefield(IPage page, Account account, Scenario scenario)
     {
-        int pageStart = 1;
-        int pageEnd = 1;
+        int pageStart = Constants.Scenario.Defaults.StartIndex;
+        int pageEnd = Constants.Scenario.Defaults.EndIndex;
 
-        if (scenario?.Properties?.TryGetValue(nameof(ScrapBattlefield), out List<Property>? properties) == true)
+        if (scenario?.Properties?.TryGetValue(nameof(Battlefield), out List<Property>? properties) == true)
         {
-            if (properties.FirstOrDefault(p => p.Name == Constants.ScenarioKeys.StartIndex)?.Value is string pageStartStr && int.TryParse(pageStartStr, out int start))
+            if (properties.FirstOrDefault(p => p.Name == Constants.Scenario.Keys.StartIndex)?.Value is string pageStartStr && int.TryParse(pageStartStr, out int start))
                 pageStart = start;
 
-            if (properties.FirstOrDefault(p => p.Name == Constants.ScenarioKeys.EndIndex)?.Value is string pageEndStr && int.TryParse(pageEndStr, out int end))
+            if (properties.FirstOrDefault(p => p.Name == Constants.Scenario.Keys.EndIndex)?.Value is string pageEndStr && int.TryParse(pageEndStr, out int end))
                 pageEnd = end;
         }
 
-        int pageIndex = pageStart;
-        string pageIndexStr = pageIndex.ToString();
-
-        //Navigate to starting point
+        await GoToTab(page, "battlefield");
+        await GoToPageIndex(page, pageStart.ToString());
+        await ProcessPages(page, account.UserName, pageStart, pageEnd);
+    }
+    public async Task Guilds(IPage page, Account account, Scenario scenario) 
+    { 
+        await GoToTab(page, "battlefieldA");
+        await ProcessPages(page, account.UserName, Constants.Scenario.Defaults.StartIndex);
+    }
+    public async Task Enemies(IPage page, Account account, Scenario scenario) 
+    {
+        await GoToTab(page, "battlefieldE");
+        await ProcessPages(page, account.UserName, Constants.Scenario.Defaults.StartIndex);
+    }
+    #endregion
+    private async Task GoToTab(IPage page, string tabName)
+    {
         await ClickButtonOnImage(page, "Attack");
-        await GoToPageIndex(page, pageIndexStr);
+        await GoToPageUrl(page, new Uri(new Uri(page.Url), $"{tabName}.php"!).ToString()); 
+    }
+    private async Task ProcessPages(IPage page, string userName, int startIndex, int? endIndex = null)
+    {
+        if(page == null)
+            return;
 
-        while (true && pageIndex <= pageEnd)
+        endIndex ??= Constants.Scenario.Defaults.EndIndex;
+
+        if (endIndex.HasValue && startIndex > endIndex.Value)
+            return;
+
+        int pageIndex = startIndex;
+        while (true)
         {
+            if(pageIndex > endIndex)
+                break;
+
+            string pageIndexStr = pageIndex.ToString();
             Loggers.Services.Playwright.ProcessPage(_logger, pageIndexStr, page.Url);
 
             Uri uri = new(page.Url);
-            string pageName = $"{account.UserName}_{Path.GetFileNameWithoutExtension(uri.AbsolutePath)}";       
+            string pageName = $"{userName}_{Path.GetFileNameWithoutExtension(uri.AbsolutePath)}";
             await SaveCurrentPageHtml(page, _path, pageName, pageIndexStr);
 
             bool moved = await MoveToNextPage(page);
             if (!moved)
-            {
-                Loggers.LogAs.Debug(_logger, "No more pages.");
                 break;
-            }
 
             pageIndex++;
-
-            await RandomDelay(500, 1000);
         }
-
-        Loggers.LogAs.Debug(_logger, "Done.");
     }
-    #endregion
-
     private async Task GoToPageIndex(IPage page, string pageId)
     {
         if (page == null)
@@ -145,7 +175,7 @@ public sealed class Playwright
         if (page == null)
             return;
 
-        Loggers.LogAs.Debug(_logger, "Waiting page to load ...");
+        Loggers.Services.Playwright.PageLoad(_logger);
         await page.WaitForLoadStateAsync(LoadState.NetworkIdle);
     }
     private async Task FillField(IPage page, string name, string value)
@@ -169,8 +199,8 @@ public sealed class Playwright
         Loggers.Services.Playwright.ClickButton(_logger, name);
         name = name.ToLower();
         string? href = await page
-        .Locator($"area[alt='{name}']")
-        .GetAttributeAsync("href");
+                .Locator($"area[alt='{name}']")
+                .GetAttributeAsync("href");
 
         await GoToPageUrl(page, new Uri(new Uri(page.Url), href!).ToString());
     }
@@ -203,6 +233,8 @@ public sealed class Playwright
 
         if (await nextButton.CountAsync() == 0)
             return false;
+
+        await RandomDelay();
 
         await nextButton.ClickAsync();
         return true;

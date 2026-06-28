@@ -7,6 +7,7 @@ namespace HtmlGamer.Core.Services;
 public sealed class Writer
 {
     private readonly ILogger<Writer> _logger;
+    private readonly char[] _invalidChars = Path.GetInvalidFileNameChars();
     internal Writer()
     : this(NullLogger<Writer>.Instance)
     {
@@ -38,13 +39,13 @@ public sealed class Writer
         {
             if (Directory.Exists(path) == false)
             {
-                Loggers.LogAs.Debug(_logger, $"Directory does not exist, creating it: {path}");
+                Loggers.LogAs.Warning(_logger, "Directory does not exist, creating it", path);
                 Directory.CreateDirectory(path);
             }
         }
         catch (Exception ex)
         {
-            Loggers.LogAs.Error(_logger, $"Error occurred while creating directory: {path}", ex);
+            Loggers.LogAs.Error(_logger, path, ex);
         }
     }
     internal void SaveAsDictionary(string path, string name, Dictionary<string, string> data)
@@ -58,7 +59,8 @@ public sealed class Writer
 
         try
         {
-            Loggers.LogAs.Debug(_logger, $"Saving: {name}");
+            name = SanitizeFileName(name);
+            Loggers.LogAs.Debug(_logger, "Saving", name);
             File.WriteAllText(Path.Combine(path, name), content);
         }
         catch (Exception ex)
@@ -72,7 +74,8 @@ public sealed class Writer
 
         try
         {
-            Loggers.LogAs.Debug(_logger, $"Saving: {name}, Path: {path}");
+            name = SanitizeFileName(name);
+            Loggers.LogAs.Debug(_logger, "Saving", name);
             File.WriteAllText(Path.Combine(path, name), content);
         }
         catch (Exception ex)
@@ -80,5 +83,5 @@ public sealed class Writer
             Loggers.LogAs.Error(_logger, name, ex);
         }
     }
+    private string SanitizeFileName(string fileName) => new string(fileName.Where(c => !_invalidChars.Contains(c)).ToArray());
 }
-

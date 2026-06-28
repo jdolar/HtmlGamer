@@ -68,6 +68,16 @@ internal partial class LogAs
         string message);
 
     [LoggerMessage(
+        EventId = 1003,
+        Level = LogLevel.Warning,
+        Message = "{message}: {details}"
+    )]
+    internal static partial void Warning(
+    ILogger logger,
+    string message,
+    string details);
+
+    [LoggerMessage(
         EventId = 1004,
         Level = LogLevel.Information,
         Message = "{message}"

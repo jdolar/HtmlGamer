@@ -22,10 +22,10 @@ public sealed class WireGuard(ILogger<WireGuard> logger, AppSettings settings) :
     }
     public async Task ConnectAsync(string tunnelName, CancellationToken cancellationToken = default)
     {
-        string ip = await GetIp(CancellationToken.None);
-        await Connect(tunnelName, CancellationToken.None);
+        string ip = await GetIp(cancellationToken);
+        await Connect(tunnelName, cancellationToken);
         await EnsureIpChange(ip);
-        await EnsureTunnelRunning(tunnelName);     
+        await EnsureTunnelRunning(tunnelName);
     }
     public async Task DisconnectAsync(string tunnelName, CancellationToken cancellationToken = default)
     {
@@ -62,9 +62,9 @@ public sealed class WireGuard(ILogger<WireGuard> logger, AppSettings settings) :
     private async Task Connect(string tunnelName, CancellationToken cancellationToken = default)
     {
         string configPath = Path.Combine(Environment.CurrentDirectory, Constants.Folders.Config, Constants.Folders.Vpn, $"{tunnelName}.conf");
-        Loggers.LogAs.Debug(logger, "Connecting to tunnel: ", tunnelName);
+        Loggers.LogAs.Debug(logger, "Connecting to VPN tunnel: ", tunnelName);
         await ExecuteAsync($"/installtunnelservice \"{configPath}\"", cancellationToken);
-        Loggers.LogAs.Debug(logger, "Connected to tunnel: ", tunnelName);
+        Loggers.LogAs.Debug(logger, "Connected to VPN tunnel: ", tunnelName);
     }
     private async Task EnsureIpChange(string previousIp, int timeoutMs = 15000)
     {
@@ -74,7 +74,7 @@ public sealed class WireGuard(ILogger<WireGuard> logger, AppSettings settings) :
         while ((DateTime.UtcNow - start).TotalMilliseconds < timeoutMs)
         {
             await Task.Delay(500);
-            string ip = await GetIp();    
+            string ip = await GetIp();
             if (ip != previousIp && !string.IsNullOrEmpty(ip))
             {
                 Loggers.LogAs.Debug(logger, "IP changed successfully. New IP: ", ip);

@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
+using Microsoft.Playwright;
 namespace HtmlGamer.Core.Loggers.Services;
 internal partial class Playwright
 {
@@ -10,7 +11,7 @@ internal partial class Playwright
     internal static partial void OpenBrowser(
         ILogger logger,
         string type);
-    
+
     [LoggerMessage(
         EventId = 1001,
         Level = LogLevel.Debug,
@@ -89,22 +90,39 @@ internal partial class Playwright
         int ms);
 
     [LoggerMessage(
-    EventId = 1007,
-    Level = LogLevel.Debug,
-    Message = "Saved page: {name} to: {path}"
-)]
+        EventId = 1007,
+        Level = LogLevel.Debug,
+        Message = "Saved page: {name} to: {path}"
+    )]
     internal static partial void SavePage(
-    ILogger logger,
-    string name,
-    string path);
+        ILogger logger,
+        string name,
+        string path);
 
     [LoggerMessage(
-   EventId = 1007,
-   Level = LogLevel.Debug,
-   Message = "[{user}] Naquadah: {naq}"
-)]
+        EventId = 1007,
+        Level = LogLevel.Debug,
+        Message = "[{user}] Naquadah: {naq}"
+    )]
     internal static partial void NaqOnHand(
-   ILogger logger,
-   string user,
-   string naq);
+        ILogger logger,
+        string user,
+        string naq);
+
+    [LoggerMessage(
+        EventId = 1008,
+        Level = LogLevel.Debug,
+        Message = "[{user}] Logging in..."
+    )]
+    internal static partial void Login(
+        ILogger logger,
+        string user);
+
+    [LoggerMessage(
+        EventId = 1008,
+        Level = LogLevel.Debug,
+        Message = "Waiting page to load ..."
+    )]
+    internal static partial void PageLoad(
+        ILogger logger);
 }

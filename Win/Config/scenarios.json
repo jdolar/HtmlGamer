@@ -1,25 +1,37 @@
 [
   {
-    "Name": "FullRun",
-    "Steps": [ "Login", "ScrapBattlefield", "Parse", "Analyze" ],
+    "Name": "GetBattlefield",
+    "Steps": [ "Login", "Battlefield" ],
     "Properties": {
-      "ScrapBattlefield": [
+      "Battlefield": [
         {
           "Name": "StartIndex",
-          "Value": "11"
+          "Value": "1"
         },
         {
           "Name": "EndIndex",
-          "Value": "12"
-        }
-      ],
-      "Analyze": [
-        {
-          "Name": "IgnoreGuilds",
-          "Value": "true"
+          "Value": "3000"
         }
       ]
     }
+  },
+  {
+    "Name": "GetEnemies",
+    "Steps": [ "Login", "Enemies" ]
+  },
+  {
+    "Name": "GetGuilds",
+    "Steps": [ "Login", "Guilds" ]
+  },
+  {
+    "Name": "SaveData",
+    "Steps": [ "Parse", "Analyze" ],
+    "Analyze": [
+      {
+        "Name": "IgnoreGuilds",
+        "Value": "true"
+      }
+    ]
   },
   {
     "Name": "Bank",

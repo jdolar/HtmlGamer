@@ -51,11 +51,19 @@ internal sealed class Constants
         internal const string SlaveUrl = nameof(SlaveUrl);
         internal const string GuildsHtml = nameof(GuildsHtml);
     }
-    internal sealed class ScenarioKeys
+    internal sealed class Scenario
     {
-        internal const string StartIndex = nameof(StartIndex);
-        internal const string EndIndex = nameof(EndIndex);
-        internal const string IgnoreGuilds = nameof(IgnoreGuilds);
+        internal sealed class Defaults
+        {
+            internal const int StartIndex = 1;
+            internal const int EndIndex = 2500;
+        }
+        internal sealed class Keys
+        {
+            internal const string IgnoreGuilds = nameof(IgnoreGuilds);
+            internal const string StartIndex = nameof(StartIndex);
+            internal const string EndIndex = nameof(EndIndex);
+        }
     }
     internal sealed class Unsorted
     {
